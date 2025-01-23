@@ -1,5 +1,6 @@
 from collections import defaultdict
 from flask import Flask, request, send_from_directory
+import requests
 
 app = Flask(__name__)
 
@@ -15,7 +16,7 @@ class Trie:
 
     root = None
     words = []
-    WORD_LIMIT = 2
+    WORD_LIMIT = 10
 
     def __init__(self):
         self.root = Node()
@@ -37,7 +38,7 @@ class Trie:
         if node.is_final:
             self.words.append(phrase)
 
-        if node.children is None or len(self.words) == self.WORD_LIMIT:
+        if node.children is None or len(self.words) >= self.WORD_LIMIT:
             return # break
 
         for letter in node.children.keys():
@@ -45,43 +46,33 @@ class Trie:
 
     def autocomplete(self, phrase):
        self.words = [] # not a huge fan of having a class level variable to manage and reset ... 
-       print(f'\n--- Autocomplete suggestions for phrase (${phrase}) ---')
+       print(f'\n--- Autocomplete suggestions for phrase ({phrase}) ---')
        node = self.__move_to_node(phrase)
        self.__collect_available_words(phrase, node)
        print(self.words)
        print()
+       return self.words
 
 
 root = Trie()
+mit_words = requests.get('https://www.mit.edu/~ecprice/wordlist.10000')
+for word in list(mit_words.text.split()):
+    root.insert(word)
 
-root.insert('apple')
-root.insert('apply')
-root.insert('about')
-root.insert('able')
-root.insert('abled')
-root.insert('ability')
-
-root.insert('car')
-root.insert('call')
-root.insert('cartesian')
-root.insert('canada')
-root.insert('candle')
-root.insert('cantaloupe')
-root.insert('canopy')
-
-root.autocomplete('ab') # should print able, about, abled, ability ( no limit )
-root.autocomplete('can') # should print canada, candle, cantaloupe, canopy ( no limit )
+# root.autocomplete('ab') # should print able, about, abled, ability ( no limit )
+# root.autocomplete('can') # should print canada, candle, cantaloupe, canopy ( no limit )
 
 
 @app.route("/")
-def root():
+def home():
     return f"Welcome to Autocomplete!"
 
 # search?query=ab
 @app.route("/search")
 def search():
     query = request.args.get('query')
-    return f"Query: {query}!"
+    words = root.autocomplete(query) 
+    return f"Query: {query}! Suggestions: {words}"
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
