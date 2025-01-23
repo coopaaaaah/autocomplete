@@ -32,3 +32,7 @@ abled - [a, b, c, d, ...]
 shows [abled, (probably nothing left)]
 ```
 
+
+#### Additional thoughts / next steps
+- Setup fastapi /GET /search?query=ab (debounce 100ms) to get list of words to show as suggestions
+- Napkin math how much words I could keep in memory (manage backend list and just offload to FE on load for faster searching in memory, no longer making client requests)
