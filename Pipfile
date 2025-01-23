@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 flask = "*"
 requests = "*"
+urllib3 = "==1.26.6"
 
 [dev-packages]
 

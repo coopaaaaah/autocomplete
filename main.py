@@ -15,7 +15,6 @@ class Node:
 class Trie:
 
     root = None
-    words = []
     WORD_LIMIT = 10
 
     def __init__(self):
@@ -33,25 +32,28 @@ class Trie:
             node = node.children[char]  # Automatically creates new node if needed
         return node
 
-    def __collect_available_words(self, phrase, node):
+    def __collect_available_words(self, phrase, node, words):
+
+        if len(words) >= self.WORD_LIMIT:
+            return
 
         if node.is_final:
-            self.words.append(phrase)
+            words.append(phrase)
 
-        if node.children is None or len(self.words) >= self.WORD_LIMIT:
+        if node.children is None:
             return # break
 
         for letter in node.children.keys():
-            self.__collect_available_words(phrase + letter, node.children[letter])
+            self.__collect_available_words(phrase + letter, node.children[letter], words)
 
     def autocomplete(self, phrase):
-       self.words = [] # not a huge fan of having a class level variable to manage and reset ... 
+       words = [] # not a huge fan of having a class level variable to manage and reset ... 
        print(f'\n--- Autocomplete suggestions for phrase ({phrase}) ---')
        node = self.__move_to_node(phrase)
-       self.__collect_available_words(phrase, node)
-       print(self.words)
+       self.__collect_available_words(phrase, node, words)
+       print(words)
        print()
-       return self.words
+       return words
 
 
 root = Trie()
@@ -72,7 +74,7 @@ def home():
 def search():
     query = request.args.get('query')
     words = root.autocomplete(query) 
-    return f"Query: {query}! Suggestions: {words}"
+    return f"Query: {query}\n Suggestions: {words}"
 
 @app.route('/static/<path:filename>')
 def serve_static(filename):
